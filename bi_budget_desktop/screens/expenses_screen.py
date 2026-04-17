@@ -8,7 +8,8 @@ from PySide6.QtCore import Qt
 from ..database import (
     get_expenses,
     save_expense,
-    delete_expense
+    delete_expense,
+    get_total_monthly_expenses
 )
 
 
@@ -87,16 +88,28 @@ class ExpensesScreen(QWidget):
 
         layout.addLayout(btn_row)
 
+        # -------------------------
+        # Total Monthly Expenses
+        # -------------------------
+        self.total_label = QLabel("")
+        self.total_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-top: 15px;")
+        layout.addWidget(self.total_label)
+
         layout.addStretch()
 
         # Load existing expenses
-        self.load_expenses()
-
-        # Track selected expense for editing
         self.selected_expense_id = None
+        self.load_expenses()
 
         # When selecting an item, load it into the form
         self.list_widget.itemClicked.connect(self.load_into_form)
+
+    # ---------------------------------------------------------
+    # Update total monthly expenses
+    # ---------------------------------------------------------
+    def update_total(self):
+        total = get_total_monthly_expenses()
+        self.total_label.setText(f"Total Monthly Expenses: ${total:,.2f}")
 
     # ---------------------------------------------------------
     # Load expenses into the list
@@ -111,6 +124,9 @@ class ExpensesScreen(QWidget):
             )
             item.setData(Qt.UserRole, _id)
             self.list_widget.addItem(item)
+
+        # Update total after loading
+        self.update_total()
 
     # ---------------------------------------------------------
     # Load selected expense into form for editing

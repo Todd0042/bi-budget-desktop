@@ -6,10 +6,21 @@ DB_PATH = "bi_budget.db"
 
 
 def get_connection():
+    import os
+    abs_path = os.path.abspath(DB_PATH)
+    print(">>> USING DB:", abs_path)
+    print(">>> DB EXISTS:", os.path.exists(abs_path))
+    if os.path.exists(abs_path):
+        print(">>> DB SIZE:", os.path.getsize(abs_path))
+    else:
+        print(">>> DB SIZE: <no file>")
     return sqlite3.connect(DB_PATH)
 
 
+
 def init_db():
+    print(">>> INIT_DB CALLED")
+
     first_time = not os.path.exists(DB_PATH)
     conn = get_connection()
     cur = conn.cursor()
@@ -28,14 +39,15 @@ def init_db():
     """)
 
     # -------------------------
-    # Income sources
+    # Income sources (FINAL SCHEMA)
     # -------------------------
     cur.execute("""
         CREATE TABLE IF NOT EXISTS income_sources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             amount REAL NOT NULL,
             frequency TEXT NOT NULL,
-            start_date TEXT NOT NULL
+            start_date TEXT NOT NULL,
+            planned_savings REAL NOT NULL DEFAULT 0
         )
     """)
 
@@ -118,6 +130,15 @@ def get_expenses():
     conn.close()
     return rows
 
+def get_total_monthly_expenses():
+    rows = get_expenses()
+    return sum(
+        amount
+        for _id, name, amount, due_day, frequency in rows
+        if frequency == "monthly"
+    )
+
+
 
 def save_expense(name, amount, due_day, frequency, expense_id=None):
     conn = get_connection()
@@ -152,7 +173,11 @@ def delete_expense(expense_id):
 def get_income_sources():
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, amount, frequency, start_date FROM income_sources")
+    cur.execute("""
+        SELECT id, amount, frequency, start_date, planned_savings
+        FROM income_sources
+        ORDER BY id
+    """)
     rows = cur.fetchall()
     conn.close()
     return rows
@@ -161,12 +186,17 @@ def get_income_sources():
 def save_income_sources(incomes):
     conn = get_connection()
     cur = conn.cursor()
+
+    # Clear existing rows first
     cur.execute("DELETE FROM income_sources")
-    for amount, frequency, start_date in incomes:
+
+    # Insert fresh set
+    for amount, frequency, start_date, planned_savings in incomes:
         cur.execute("""
-            INSERT INTO income_sources (amount, frequency, start_date)
-            VALUES (?, ?, ?)
-        """, (amount, frequency, start_date))
+            INSERT INTO income_sources (amount, frequency, start_date, planned_savings)
+            VALUES (?, ?, ?, ?)
+        """, (amount, frequency, start_date, planned_savings))
+
     conn.commit()
     conn.close()
 
@@ -259,7 +289,6 @@ def save_savings_flag(value: bool):
 # ============================================================
 
 def add_savings_event(amount: float, note: str, source: str):
-    """Adds a savings event and updates the savings balance."""
     today = date.today().strftime("%Y-%m-%d")
 
     conn = get_connection()
@@ -286,7 +315,6 @@ def add_savings_event(amount: float, note: str, source: str):
 
 
 def insert_initial_savings_event(amount: float):
-    """Insert initial savings WITHOUT modifying balance."""
     today = date.today().strftime("%Y-%m-%d")
 
     conn = get_connection()
@@ -307,6 +335,8 @@ def get_savings_events():
         FROM savings_events
         ORDER BY date DESC, id DESC
     """)
+    print(">>> USING DB:", os.path.abspath(DB_PATH))
+
     rows = cur.fetchall()
     conn.close()
     return rows
@@ -342,7 +372,14 @@ def save_setting_theme(theme):
 # ============================================================
 
 def reset_all_data():
-    """Drops all tables and recreates them."""
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
     init_db()
+
+def debug_print_income_sources():
+    conn = get_connection()
+    cur = conn.cursor()
+    print(">>> RAW income_sources TABLE:")
+    for row in cur.execute("SELECT * FROM income_sources"):
+        print("   ", row)
+    conn.close()
