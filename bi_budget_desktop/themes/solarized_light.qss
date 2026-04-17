@@ -1,0 +1,33 @@
+/* Solarized Light */
+
+QWidget {
+    background-color: #fdf6e3;
+    color: #657b83;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #eee8d5;
+    border: 1px solid #93a1a1;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #e1dbcd;
+}
+
+QLineEdit, QTextEdit, QSpinBox, QComboBox {
+    background-color: #eee8d5;
+    border: 1px solid #93a1a1;
+    color: #586e75;
+}
+
+QListWidget {
+    background-color: #eee8d5;
+    color: #586e75;
+}
+
+QListWidget::item:selected {
+    background-color: #93a1a1;
+}

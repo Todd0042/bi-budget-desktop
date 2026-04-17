@@ -1,0 +1,33 @@
+/* Solarized Dark */
+
+QWidget {
+    background-color: #002b36;
+    color: #93a1a1;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #073642;
+    border: 1px solid #586e75;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #586e75;
+}
+
+QLineEdit, QTextEdit, QSpinBox, QComboBox {
+    background-color: #073642;
+    border: 1px solid #586e75;
+    color: #93a1a1;
+}
+
+QListWidget {
+    background-color: #073642;
+    color: #93a1a1;
+}
+
+QListWidget::item:selected {
+    background-color: #586e75;
+}

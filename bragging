@@ -1,0 +1,107 @@
+<style>
+  details {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    transition: all 0.25s ease;
+  }
+  details[open] {
+    background: #eef8ff;
+    border-color: #7bbdff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  summary {
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: " ▼";
+    font-size: 12px;
+    color: #666;
+    transition: transform 0.2s ease;
+  }
+  details[open] summary::after {
+    content: " ▲";
+    color: #0077cc;
+  }
+  p, ul {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.45em;
+  }
+  ul {
+    margin-left: 18px;
+  }
+</style>
+
+<h2>💡 Bi‑Budget Philosophy</h2>
+<p>Bi‑Budget is built on a simple idea: most people are paid every two weeks, and most bills repeat every month. Understanding how those cycles overlap keeps you ahead of your money instead of behind it.</p>
+
+<details>
+  <summary>💵 Bi‑Weekly Paychecks Are the Foundation</summary>
+  <p>Most people are paid every two weeks — not twice a month. Paychecks drift across the calendar, and that’s normal. What matters is the <b>14‑day cycle</b>, not the exact date.</p>
+  <p>Bi‑Budget focuses on cycles, not calendar micromanagement.</p>
+</details>
+
+<details>
+  <summary>📅 Monthly Bills Are Predictable Enough</summary>
+  <p>Bills might shift by a day due to weekends or holidays, but the amount and timing stay consistent. Bi‑Budget treats monthly bills as monthly because that’s what they are.</p>
+</details>
+
+<details>
+  <summary>🧠 Your Average Spending Is the Key Number</summary>
+  <p>Instead of tracking every transaction, Bi‑Budget uses your <b>average spending per paycheck</b> to forecast how much you can safely spend.</p>
+  <p>If you always keep your average available, you stay ahead of your money instead of behind it.</p>
+</details>
+
+<details>
+  <summary>🏦 Savings Handles the Irregular Stuff</summary>
+  <p>Life throws curveballs — car repairs, holidays, school clothes, vet bills, yearly subscriptions.</p>
+  <p>Instead of trying to predict every irregular expense, Bi‑Budget uses <b>savings</b> as the buffer.</p>
+  <ul>
+    <li>Add extra income to savings</li>
+    <li>Pay irregular expenses from savings</li>
+    <li>Refill savings over time</li>
+  </ul>
+  <p>Simple. Effective. Stress‑free.</p>
+</details>
+
+<details>
+  <summary>🟢 Safe‑to‑Spend Is Per‑Paycheck</summary>
+  <p>Your Safe‑to‑Spend number is the amount you can use <b>this paycheck</b> without hurting the next one.</p>
+  <p>Spend it today or stretch it over two weeks — it’s the same pot. Bi‑Budget gives you the number. You decide how to use it.</p>
+</details>
+
+<details>
+  <summary>👥 Multiple Incomes Are Treated Independently</summary>
+  <p>Each income source has its own bi‑weekly cycle. Bi‑Budget calculates each one separately, then combines them into a single forecast.</p>
+  <p>This keeps everything accurate even if your paychecks land on different days.</p>
+</details>
+
+<details>
+  <summary>🧾 A Forecasting Tool, Not a Tracking Tool</summary>
+  <p>Bi‑Budget doesn’t sync with banks or categorize transactions. It doesn’t try to micromanage your money.</p>
+  <p>It answers the one question that actually matters:</p>
+  <p><b>“How much can I safely spend this paycheck?”</b></p>
+</details>
+
+<details>
+  <summary>🎯 Focus on What Actually Matters</summary>
+  <p>No categories. No daily budgets. No transaction logs. No overwhelm.</p>
+  <p>Just a clean, simple system that keeps you ahead of your bills and in control of your money.</p>
+</details>
+
+<hr style="margin-top:20px;">
+
+<p style="font-size:12px; color:#666; text-align:center;">
+⚠️ <b>Disclaimer:</b> Bi‑Budget is a personal budgeting tool and does not provide financial advice.  
+How you choose to use the app is entirely your own responsibility.
+</p>

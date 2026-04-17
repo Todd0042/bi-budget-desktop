@@ -1,0 +1,33 @@
+/* Nord Theme */
+
+QWidget {
+    background-color: #2e3440;
+    color: #d8dee9;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #4c566a;
+    border: 1px solid #81a1c1;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #5e81ac;
+}
+
+QLineEdit, QTextEdit, QSpinBox, QComboBox {
+    background-color: #434c5e;
+    border: 1px solid #81a1c1;
+    color: #eceff4;
+}
+
+QListWidget {
+    background-color: #3b4252;
+    color: #eceff4;
+}
+
+QListWidget::item:selected {
+    background-color: #5e81ac;
+}

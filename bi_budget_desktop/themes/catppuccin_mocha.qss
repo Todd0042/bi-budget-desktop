@@ -1,0 +1,33 @@
+/* Catppuccin Mocha */
+
+QWidget {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #313244;
+    border: 1px solid #89b4fa;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #45475a;
+}
+
+QLineEdit, QTextEdit, QSpinBox, QComboBox {
+    background-color: #313244;
+    border: 1px solid #89b4fa;
+    color: #cdd6f4;
+}
+
+QListWidget {
+    background-color: #181825;
+    color: #cdd6f4;
+}
+
+QListWidget::item:selected {
+    background-color: #89b4fa;
+}

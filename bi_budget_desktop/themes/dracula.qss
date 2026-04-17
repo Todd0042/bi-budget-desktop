@@ -1,0 +1,37 @@
+/* Dracula Theme */
+
+QWidget {
+    background-color: #282a36;
+    color: #f8f8f2;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #44475a;
+    border: 1px solid #6272a4;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #6272a4;
+}
+
+QLineEdit, QTextEdit {
+    background-color: #44475a;
+    border: 1px solid #6272a4;
+    color: #f8f8f2;
+}
+
+QScrollArea {
+    background-color: #282a36;
+}
+
+QListWidget {
+    background-color: #21222c;
+    color: #f8f8f2;
+}
+
+QListWidget::item:selected {
+    background-color: #6272a4;
+}

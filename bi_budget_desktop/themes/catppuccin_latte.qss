@@ -1,0 +1,33 @@
+/* Catppuccin Latte */
+
+QWidget {
+    background-color: #eff1f5;
+    color: #4c4f69;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #e6e9ef;
+    border: 1px solid #7287fd;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #dce0e8;
+}
+
+QLineEdit, QTextEdit, QSpinBox, QComboBox {
+    background-color: #e6e9ef;
+    border: 1px solid #7287fd;
+    color: #4c4f69;
+}
+
+QListWidget {
+    background-color: #e6e9ef;
+    color: #4c4f69;
+}
+
+QListWidget::item:selected {
+    background-color: #7287fd;
+}
