@@ -5,12 +5,7 @@ from PySide6.QtCore import Qt
 from .database import init_db, load_setting_theme
 from .app_window import AppWindow
 
-
-import os
-from PySide6.QtWidgets import QApplication
-
-from .database import init_db, load_setting_theme
-from .app_window import AppWindow
+from bi_budget_desktop.app_paths import app_root
 
 
 def apply_theme(app, theme_name):
@@ -19,18 +14,19 @@ def apply_theme(app, theme_name):
     Falls back to Fusion Light/Dark/System if no QSS file exists.
     """
 
-    theme_path = os.path.join(os.path.dirname(__file__), "themes", f"{theme_name}.qss")
+    # Build theme path using universal resolver
+    theme_path = app_root() / "themes" / f"{theme_name}.qss"
 
     # If a QSS file exists, load it
-    if os.path.exists(theme_path):
-        with open(theme_path, "r") as f:
-            app.setStyleSheet(f.read())
-        return
+    if theme_path.exists():
+        try:
+            with open(theme_path, "r") as f:
+                app.setStyleSheet(f.read())
+            return
+        except Exception as e:
+            print("Failed to load QSS theme:", e)
 
     # Otherwise fallback to Fusion palette
-    from PySide6.QtGui import QPalette, QColor
-    from PySide6.QtCore import Qt
-
     app.setStyle("Fusion")
 
     if theme_name == "dark":
@@ -54,6 +50,7 @@ def apply_theme(app, theme_name):
         # system default
         palette = app.style().standardPalette()
         app.setPalette(palette)
+
 
 def main():
     init_db()

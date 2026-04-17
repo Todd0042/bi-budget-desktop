@@ -10,6 +10,8 @@ from ..database import (
     reset_all_data
 )
 
+from bi_budget_desktop.app_paths import app_root
+
 
 class SettingsScreen(QWidget):
     def __init__(self, app_ref):

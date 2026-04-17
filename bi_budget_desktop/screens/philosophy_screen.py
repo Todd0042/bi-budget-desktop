@@ -5,6 +5,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 
+from bi_budget_desktop.app_paths import app_root
+
 
 class PhilosophyScreen(QWidget):
     def __init__(self):
@@ -28,7 +30,7 @@ class PhilosophyScreen(QWidget):
         # ---------------------------------------------------------
         # Helper to add a section
         # ---------------------------------------------------------
-        def add_section(title, text, icon_path):
+        def add_section(title, text, icon_filename):
             section = QWidget()
             s_layout = QVBoxLayout(section)
             s_layout.setSpacing(8)
@@ -39,8 +41,11 @@ class PhilosophyScreen(QWidget):
             row_layout.setSpacing(16)
             row_layout.setContentsMargins(0, 0, 0, 0)
 
+            # Build full icon path using app_root()
+            icon_path = app_root() / "icons" / icon_filename
+
             # Icon
-            pix = QPixmap(icon_path).scaled(
+            pix = QPixmap(str(icon_path)).scaled(
                 48, 48,
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
@@ -78,49 +83,49 @@ class PhilosophyScreen(QWidget):
             layout.addWidget(section)
 
         # ---------------------------------------------------------
-        # Sections (no emoji)
+        # Sections
         # ---------------------------------------------------------
         add_section(
             "Bi‑Weekly Paychecks Are the Foundation",
             "Most people are paid every two weeks — not twice a month. "
             "Paychecks drift across the calendar, and that’s normal. "
             "What matters is the 14‑day cycle, not the exact date.",
-            "./icons/money.png"
+            "money.png"
         )
 
         add_section(
             "Monthly Bills Are Predictable Enough",
             "Bills might shift by a day due to weekends or holidays, "
             "but the amount and timing stay consistent.",
-            "./icons/calendar.png"
+            "calendar.png"
         )
 
         add_section(
             "Your Average Spending Is the Key Number",
             "Instead of tracking every transaction, Bi‑Budget uses your "
             "average spending per paycheck to forecast how much you can safely spend.",
-            "./icons/brain.png"
+            "brain.png"
         )
 
         add_section(
             "Savings Handles the Irregular Stuff",
             "Life throws curveballs — car repairs, holidays, school clothes, vet bills, yearly subscriptions. "
             "Savings is the buffer that absorbs these without stress.",
-            "./icons/piggybank.png"
+            "piggybank.png"
         )
 
         add_section(
             "Safety and Stability",
             "Your system should protect your essentials first — rent, utilities, food — "
             "before discretionary spending.",
-            "./icons/shield.png"
+            "shield.png"
         )
 
         add_section(
             "Multiple Incomes Are Treated Independently",
             "Each income source has its own bi‑weekly cycle. "
             "Bi‑Budget calculates each one separately, then combines them.",
-            "./icons/people.png"
+            "people.png"
         )
 
         add_section(
@@ -128,14 +133,14 @@ class PhilosophyScreen(QWidget):
             "Bi‑Budget doesn’t sync with banks or categorize transactions. "
             "It answers the one question that matters: "
             "How much can I safely spend this paycheck?",
-            "./icons/chart.png"
+            "chart.png"
         )
 
         add_section(
             "Focus on What Actually Matters",
             "No categories. No daily budgets. No transaction logs. No overwhelm. "
             "Just a clean, simple system that keeps you ahead of your bills.",
-            "./icons/target.png"
+            "target.png"
         )
 
         layout.addStretch()
