@@ -155,3 +155,13 @@ class PhilosophyScreen(QWidget):
         disclaimer.setStyleSheet("font-size: 12px; color: #666; padding: 12px;")
 
         outer.addWidget(disclaimer)
+
+        # Version.
+        versioning = QLabel(
+            "Version 1.0a"
+        )
+        versioning.setWordWrap(True)
+        versioning.setAlignment(Qt.AlignCenter)
+        versioning.setStyleSheet("font-size: 12px; color: #666; padding: 12px;")
+
+        outer.addWidget(versioning)
