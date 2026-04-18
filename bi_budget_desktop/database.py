@@ -2,7 +2,19 @@ import sqlite3
 import os
 from datetime import date
 
-DB_PATH = "bi_budget.db"
+import sys
+from pathlib import Path
+
+def get_app_data_dir():
+    if getattr(sys, 'frozen', False):
+        # Running as packaged EXE
+        return Path(sys.executable).parent
+    else:
+        # Running from source
+        return Path(__file__).parent
+
+DB_PATH = get_app_data_dir() / "bi_budget.db"
+
 
 # ============================================================
 # DEBUG LOGGER HOOK
