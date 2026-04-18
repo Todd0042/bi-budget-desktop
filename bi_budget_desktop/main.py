@@ -4,20 +4,17 @@ from PySide6.QtCore import Qt
 
 from .database import init_db, load_setting_theme
 from .app_window import AppWindow
+from .app_paths import app_root
+import bi_budget_desktop.app_flags as app_flags
 
-from bi_budget_desktop.app_paths import app_root
+# NEW
+from .debug_overlay import DebugOverlay
+import bi_budget_desktop.database as db
 
 
 def apply_theme(app, theme_name):
-    """
-    Loads a QSS theme if available.
-    Falls back to Fusion Light/Dark/System if no QSS file exists.
-    """
-
-    # Build theme path using universal resolver
     theme_path = app_root() / "themes" / f"{theme_name}.qss"
 
-    # If a QSS file exists, load it
     if theme_path.exists():
         try:
             with open(theme_path, "r") as f:
@@ -26,7 +23,6 @@ def apply_theme(app, theme_name):
         except Exception as e:
             print("Failed to load QSS theme:", e)
 
-    # Otherwise fallback to Fusion palette
     app.setStyle("Fusion")
 
     if theme_name == "dark":
@@ -42,28 +38,63 @@ def apply_theme(app, theme_name):
         palette.setColor(QPalette.HighlightedText, Qt.black)
         app.setPalette(palette)
 
-    elif theme_name == "light":
-        palette = app.style().standardPalette()
-        app.setPalette(palette)
-
     else:
-        # system default
         palette = app.style().standardPalette()
         app.setPalette(palette)
 
 
-def main():
-    init_db()
+def launch_app():
+    """Called by run.py — this is the real launcher."""
 
+    # ---------------------------------------------------------
+    # 1. Create QApplication FIRST (Qt requirement)
+    # ---------------------------------------------------------
     app = QApplication([])
 
     # Attach theme function to the app instance
     app.apply_theme = lambda name: apply_theme(app, name)
 
+    # ---------------------------------------------------------
+    # 2. Create DebugOverlay (now safe)
+    # ---------------------------------------------------------
+    debug_overlay = None
+
+    if app_flags.DEBUG_MODE:
+        debug_overlay = DebugOverlay()
+        debug_overlay.show()
+        debug_overlay.log("Debug overlay created (main.py)")
+
+        # Attach DB logger BEFORE init_db()
+        db.DEBUG_LOGGER = debug_overlay
+        debug_overlay.log("DB logger attached (main.py)")
+
+    if app_flags.DEBUG_MODE:
+        debug_overlay = DebugOverlay()
+
+        # Force initial spawn position BEFORE show()
+        debug_overlay.move(0, 0)
+
+        debug_overlay.show()
+        debug_overlay.raise_()
+        debug_overlay.log("Debug overlay created (main.py)")
+
+        db.DEBUG_LOGGER = debug_overlay
+
+    # ---------------------------------------------------------
+    # 3. Now it's safe to initialize the database
+    # ---------------------------------------------------------
+    init_db()
+
+    # ---------------------------------------------------------
+    # 4. Apply theme
+    # ---------------------------------------------------------
     theme = load_setting_theme()
     apply_theme(app, theme)
 
-    window = AppWindow(app)
+    # ---------------------------------------------------------
+    # 5. Create AppWindow and pass overlay
+    # ---------------------------------------------------------
+    window = AppWindow(app, debug_overlay)
     window.show()
 
     app.exec()
