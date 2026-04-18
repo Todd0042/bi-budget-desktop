@@ -34,30 +34,51 @@ class SettingsScreen(QWidget):
         theme_label.setStyleSheet("font-size: 16px; font-weight: bold;")
         layout.addWidget(theme_label)
 
+        # VALID THEMES LIST (add this here)
+        valid_themes = [
+            "system", "light", "dark",
+            "dracula", "nord",
+            "solarized_dark", "solarized_light",
+            "tokyo_night",
+            "catppuccin_mocha", "catppuccin_latte",
+            "gruvbox_dark", "everforest_dark",
+            "monokai_pro", "one_dark",
+            "material_ocean", "night_owl",
+            "ayu_dark", "oxide_dark",
+            "military_olive_dark"
+        ]
+
         self.theme_dropdown = QComboBox()
         self.theme_dropdown.addItems([
             "system",
             "light",
             "dark",
+
+            # Existing dark themes
             "dracula",
             "nord",
             "solarized_dark",
-            "solarized_light",
             "tokyo_night",
             "catppuccin_mocha",
-            "catppuccin_latte"
+
+            # New dark themes
+            "gruvbox_dark",
+            "everforest_dark",
+            "monokai_pro",
+            "one_dark",
+            "material_ocean",
+            "night_owl",
+            "ayu_dark",
+            "oxide_dark",
+            "military_olive_dark"
         ])
+
 
         # Load saved theme
         current = load_setting_theme()
-        if current in [
-            "system", "light", "dark",
-            "dracula", "nord",
-            "solarized_dark", "solarized_light",
-            "tokyo_night",
-            "catppuccin_mocha", "catppuccin_latte"
-        ]:
+        if current in valid_themes:
             self.theme_dropdown.setCurrentText(current)
+
 
         layout.addWidget(self.theme_dropdown)
 

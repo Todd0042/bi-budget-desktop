@@ -1,0 +1,73 @@
+/* Military Olive Dark — Brown‑Heavy Revision */
+
+* {
+    background-color: #1b1a16;      /* deep muddy brown‑black */
+    color: #d2cbb8;                 /* faded khaki */
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #2a281f;      /* dark coyote brown */
+    border: 1px solid #3a382d;      /* darker field brown */
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #3a382d;      /* worn canvas brown */
+}
+QPushButton:pressed {
+    background-color: #4a4738;      /* dusty, sun‑bleached brown */
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #2a281f;
+    border: 1px solid #3a382d;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #2a281f;
+    selection-background-color: #4a4738;
+}
+
+/* Inputs */
+QLineEdit {
+    background-color: #2a281f;
+    border: 1px solid #3a382d;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+}
+QCheckBox::indicator:unchecked {
+    background: #2a281f;
+    border: 1px solid #3a382d;
+}
+QCheckBox::indicator:checked {
+    background: #6f744a;            /* muted olive green accent */
+    border: 1px solid #5c6040;
+}
+
+/* Scrollbars */
+QScrollBar:vertical {
+    background: #1b1a16;
+    width: 12px;
+}
+QScrollBar::handle:vertical {
+    background: #3a382d;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #4a4738;
+}
+
+/* Lists / Tables */
+QListView, QTableView {
+    background-color: #1b1a16;
+    alternate-background-color: #222018; /* subtle brown shift */
+    gridline-color: #3a382d;
+}

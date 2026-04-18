@@ -1,0 +1,59 @@
+/* Everforest Dark Theme */
+
+* {
+    background-color: #2b3339;
+    color: #d3c6aa;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #323c41;
+    border: 1px solid #4c555b;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #4c555b;
+}
+QPushButton:pressed {
+    background-color: #596763;
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #323c41;
+    border: 1px solid #4c555b;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #323c41;
+    selection-background-color: #4c555b;
+}
+
+/* Inputs */
+QLineEdit {
+    background-color: #323c41;
+    border: 1px solid #4c555b;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator:checked {
+    background: #a7c080;
+    border: 1px solid #83a06b;
+}
+QCheckBox::indicator:unchecked {
+    background: #323c41;
+    border: 1px solid #4c555b;
+}
+
+/* Scrollbars */
+QScrollBar:vertical {
+    background: #2b3339;
+    width: 12px;
+}
+QScrollBar::handle:vertical {
+    background: #4c555b;
+    border-radius: 4px;
+}

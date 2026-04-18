@@ -15,6 +15,7 @@ from .screens.pay_schedule_screen import PayScheduleScreen
 from .screens.budget_screen import BudgetScreen
 from .screens.settings_screen import SettingsScreen
 from .screens.philosophy_screen import PhilosophyScreen
+from .screens.timeline_screen import TimelineScreen   # ← NEW IMPORT
 
 from .database import load_savings_balance
 
@@ -64,9 +65,10 @@ class AppWindow(QMainWindow):
         )
 
         self.sidebar.addItem("Dashboard")
+        self.sidebar.addItem("Timeline")   # ← NEW
         self.sidebar.addItem("Expenses")
         self.sidebar.addItem("Income")
-        self.sidebar.addItem("Budgets")
+        self.sidebar.addItem("Savings")
         self.sidebar.addItem("Settings")
         self.sidebar.addItem("Philosophy")
 
@@ -85,7 +87,6 @@ class AppWindow(QMainWindow):
         # -------------------------
         # FIX: Delay initial dashboard load
         # -------------------------
-        # This prevents early DB access before init_db() finishes.
         QTimer.singleShot(0, lambda: self.sidebar.setCurrentRow(0))
 
 
@@ -132,14 +133,16 @@ class AppWindow(QMainWindow):
         if index == 0:
             self.show_dashboard()
         elif index == 1:
-            self.show_expenses()
+            self.show_timeline()       # ← NEW
         elif index == 2:
-            self.show_pay_schedule()
+            self.show_expenses()
         elif index == 3:
-            self.show_budgets()
+            self.show_pay_schedule()
         elif index == 4:
-            self.show_settings()
+            self.show_budgets()
         elif index == 5:
+            self.show_settings()
+        elif index == 6:
             self.show_philosophy()
 
     # -------------------------
@@ -150,7 +153,6 @@ class AppWindow(QMainWindow):
 
         from .database import debug_print_income_sources
         debug_print_income_sources()
-
 
         savings = load_savings_balance()
         savings_label = QLabel(f"Savings Balance: ${savings:,.2f}")
@@ -244,6 +246,10 @@ class AppWindow(QMainWindow):
     # -------------------------
     # OTHER SCREENS
     # -------------------------
+    def show_timeline(self):   # ← NEW
+        self.clear_content()
+        self.content_layout.addWidget(TimelineScreen())
+
     def show_expenses(self):
         self.clear_content()
         self.content_layout.addWidget(ExpensesScreen())

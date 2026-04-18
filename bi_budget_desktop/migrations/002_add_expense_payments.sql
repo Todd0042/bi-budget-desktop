@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS expense_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    expense_id INTEGER NOT NULL,
+    due_date TEXT NOT NULL,
+    paid INTEGER NOT NULL DEFAULT 0
+);

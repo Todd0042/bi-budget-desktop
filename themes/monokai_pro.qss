@@ -1,0 +1,55 @@
+/* Monokai Pro Theme */
+
+* {
+    background-color: #2d2a2e;
+    color: #f8f8f2;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #403e41;
+    border: 1px solid #5b595c;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #5b595c;
+}
+QPushButton:pressed {
+    background-color: #757277;
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #403e41;
+    border: 1px solid #5b595c;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #403e41;
+    selection-background-color: #5b595c;
+}
+
+/* Inputs */
+QLineEdit {
+    background-color: #403e41;
+    border: 1px solid #5b595c;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator:checked {
+    background: #ffd866;
+    border: 1px solid #e6c25c;
+}
+QCheckBox::indicator:unchecked {
+    background: #403e41;
+    border: 1px solid #5b595c;
+}
+
+/* Scrollbars */
+QScrollBar::handle:vertical {
+    background: #5b595c;
+    border-radius: 4px;
+}

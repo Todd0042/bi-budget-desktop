@@ -165,6 +165,41 @@ def delete_expense(expense_id):
     conn.commit()
     conn.close()
 
+# ============================================================
+# EXPENSE PAYMENTS (monthly bill instances)
+# ============================================================
+
+def get_expense_payment(expense_id, due_date):
+    """
+    Returns 1 if the bill is marked paid for that due_date, otherwise 0.
+    If no row exists, returns 0 (unpaid).
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT paid
+        FROM expense_payments
+        WHERE expense_id = ? AND due_date = ?
+    """, (expense_id, due_date))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+
+def set_expense_payment(expense_id, due_date, paid):
+    """
+    Inserts or updates the paid status for a bill instance.
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO expense_payments (expense_id, due_date, paid)
+        VALUES (?, ?, ?)
+        ON CONFLICT(expense_id, due_date)
+        DO UPDATE SET paid = excluded.paid
+    """, (expense_id, due_date, paid))
+    conn.commit()
+    conn.close()
 
 # ============================================================
 # INCOME SOURCES
@@ -383,3 +418,5 @@ def debug_print_income_sources():
     for row in cur.execute("SELECT * FROM income_sources"):
         print("   ", row)
     conn.close()
+
+

@@ -1,0 +1,55 @@
+/* Night Owl Theme */
+
+* {
+    background-color: #011627;
+    color: #d6deeb;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #0b253a;
+    border: 1px solid #1d3b53;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #1d3b53;
+}
+QPushButton:pressed {
+    background-color: #294a63;
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #0b253a;
+    border: 1px solid #1d3b53;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #0b253a;
+    selection-background-color: #1d3b53;
+}
+
+/* Inputs */
+QLineEdit {
+    background-color: #0b253a;
+    border: 1px solid #1d3b53;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator:checked {
+    background: #82aaff;
+    border: 1px solid #6f94e0;
+}
+QCheckBox::indicator:unchecked {
+    background: #0b253a;
+    border: 1px solid #1d3b53;
+}
+
+/* Scrollbars */
+QScrollBar::handle:vertical {
+    background: #1d3b53;
+    border-radius: 4px;
+}

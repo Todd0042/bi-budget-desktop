@@ -1,0 +1,55 @@
+/* Material Ocean Theme */
+
+* {
+    background-color: #1e272e;
+    color: #d2dae2;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #2f3640;
+    border: 1px solid #3c4450;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #3c4450;
+}
+QPushButton:pressed {
+    background-color: #4b5563;
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #2f3640;
+    border: 1px solid #3c4450;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #2f3640;
+    selection-background-color: #3c4450;
+}
+
+/* Inputs */
+QLineEdit {
+    background-color: #2f3640;
+    border: 1px solid #3c4450;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator:checked {
+    background: #00a8ff;
+    border: 1px solid #0097e6;
+}
+QCheckBox::indicator:unchecked {
+    background: #2f3640;
+    border: 1px solid #3c4450;
+}
+
+/* Scrollbars */
+QScrollBar::handle:vertical {
+    background: #3c4450;
+    border-radius: 4px;
+}

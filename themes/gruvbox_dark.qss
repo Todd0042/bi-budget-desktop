@@ -1,0 +1,63 @@
+/* Gruvbox Dark Theme */
+
+* {
+    background-color: #282828;
+    color: #ebdbb2;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #3c3836;
+    border: 1px solid #504945;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #504945;
+}
+QPushButton:pressed {
+    background-color: #665c54;
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #3c3836;
+    border: 1px solid #504945;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #3c3836;
+    selection-background-color: #504945;
+}
+
+/* LineEdits */
+QLineEdit {
+    background-color: #3c3836;
+    border: 1px solid #504945;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+}
+QCheckBox::indicator:unchecked {
+    border: 1px solid #504945;
+    background: #3c3836;
+}
+QCheckBox::indicator:checked {
+    background: #b8bb26;
+    border: 1px solid #98971a;
+}
+
+/* Scrollbars */
+QScrollBar:vertical {
+    background: #282828;
+    width: 12px;
+}
+QScrollBar::handle:vertical {
+    background: #504945;
+    border-radius: 4px;
+}

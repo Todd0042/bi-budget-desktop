@@ -1,0 +1,55 @@
+/* Ayu Dark Theme */
+
+* {
+    background-color: #0a0e14;
+    color: #b3b1ad;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #131721;
+    border: 1px solid #1f2430;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #1f2430;
+}
+QPushButton:pressed {
+    background-color: #2d3340;
+}
+
+/* ComboBox */
+QComboBox {
+    background-color: #131721;
+    border: 1px solid #1f2430;
+    padding: 4px;
+}
+QComboBox QAbstractItemView {
+    background-color: #131721;
+    selection-background-color: #1f2430;
+}
+
+/* Inputs */
+QLineEdit {
+    background-color: #131721;
+    border: 1px solid #1f2430;
+    padding: 4px;
+}
+
+/* Checkboxes */
+QCheckBox::indicator:checked {
+    background: #ffcc66;
+    border: 1px solid #e6b85c;
+}
+QCheckBox::indicator:unchecked {
+    background: #131721;
+    border: 1px solid #1f2430;
+}
+
+/* Scrollbars */
+QScrollBar::handle:vertical {
+    background: #1f2430;
+    border-radius: 4px;
+}

@@ -6,6 +6,7 @@ from .database import (
     get_income_sources,
     get_expenses,
     load_pay_schedule,
+    get_expense_payment,   # ← ADD THIS
 )
 
 
@@ -108,7 +109,13 @@ def _expand_monthly_expenses(start_date: datetime.date, months_ahead: int = 3):
             due_date = datetime.date(y, m, d)
 
             if due_date >= start_date:
+                # NEW: skip if this specific instance is marked paid
+                paid = get_expense_payment(_id, due_date.isoformat())
+                if paid == 1:
+                    continue
+
                 expanded.append((_id, name, amount, due_date, frequency))
+
 
     return expanded
 
@@ -140,7 +147,14 @@ def _expand_monthly_expenses_until(start_date: datetime.date, cutoff_date: datet
                 break
 
             if due_date >= start_date:
+                # NEW: skip if this specific instance is marked paid
+                paid = get_expense_payment(_id, due_date.isoformat())
+                if paid == 1:
+                    month += 1
+                    continue
+
                 expanded.append((_id, name, amount, due_date, frequency))
+
 
             month += 1
 
