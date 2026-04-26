@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton,
     QLineEdit, QHBoxLayout, QListWidget, QListWidgetItem,
-    QMessageBox, QScrollArea
+    QMessageBox
 )
 from PySide6.QtCore import Qt
 
@@ -23,16 +23,10 @@ class BudgetScreen(QWidget):
 
         layout = QVBoxLayout(self)
 
-        # -------------------------
-        # Title
-        # -------------------------
         title = QLabel("Budget Overview")
         title.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title)
 
-        # -------------------------
-        # Savings Balance
-        # -------------------------
         bal_label = QLabel("Current Savings Balance")
         bal_label.setStyleSheet("font-size: 16px; font-weight: bold;")
         layout.addWidget(bal_label)
@@ -41,9 +35,6 @@ class BudgetScreen(QWidget):
         self.balance_value.setStyleSheet("font-size: 18px; margin-bottom: 10px;")
         layout.addWidget(self.balance_value)
 
-        # -------------------------
-        # Deposit / Withdrawal
-        # -------------------------
         row = QHBoxLayout()
 
         self.amount_input = QLineEdit()
@@ -60,9 +51,6 @@ class BudgetScreen(QWidget):
 
         layout.addLayout(row)
 
-        # -------------------------
-        # Savings History (Scrollable)
-        # -------------------------
         hist_label = QLabel("Savings History")
         hist_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 15px;")
         layout.addWidget(hist_label)
@@ -70,9 +58,6 @@ class BudgetScreen(QWidget):
         self.history_list = QListWidget()
         layout.addWidget(self.history_list)
 
-        # -------------------------
-        # Forecast Section
-        # -------------------------
         forecast_title = QLabel("Upcoming Paycheck Forecast")
         forecast_title.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 20px;")
         layout.addWidget(forecast_title)
@@ -80,34 +65,23 @@ class BudgetScreen(QWidget):
         self.forecast_list = QListWidget()
         layout.addWidget(self.forecast_list)
 
-        # Combined totals
         self.combined_label = QLabel("")
         self.combined_label.setStyleSheet("font-size: 14px; margin-top: 10px;")
         layout.addWidget(self.combined_label)
 
         layout.addStretch()
 
-        # Load initial data
         self.refresh()
 
-    # ---------------------------------------------------------
-    # Refresh all UI sections
-    # ---------------------------------------------------------
     def refresh(self):
         self.load_balance()
         self.load_history()
         self.load_forecast()
 
-    # ---------------------------------------------------------
-    # Savings Balance
-    # ---------------------------------------------------------
     def load_balance(self):
         bal = load_savings_balance()
         self.balance_value.setText(f"${bal:,.2f}")
 
-    # ---------------------------------------------------------
-    # Savings History
-    # ---------------------------------------------------------
     def load_history(self):
         self.history_list.clear()
         rows = get_savings_events()
@@ -117,25 +91,21 @@ class BudgetScreen(QWidget):
             item = QListWidgetItem(f"{date_str} — {sign}${abs(amount):.2f} — {note}")
             self.history_list.addItem(item)
 
-    # ---------------------------------------------------------
-    # Forecast
-    # ---------------------------------------------------------
     def load_forecast(self):
         self.forecast_list.clear()
 
         windows = calculate_income_windows()
         combined = calculate_combined_forecast()
 
-        # Per-paycheck windows
         for w in windows:
+            display_name = w.name.strip() if w.name and w.name.strip() else f"Income #{w.income_id}"
             item = QListWidgetItem(
-                f"Paycheck on {w.next_pay} — Amount: ${w.amount:,.2f}\n"
+                f"{display_name} — Paycheck on {w.next_pay} — Amount: ${w.amount:,.2f}\n"
                 f"Window: {w.window_start} → {w.window_end}\n"
                 f"Expenses: ${w.total_expenses:,.2f} | Hold Back: ${w.hold_back:,.2f}"
             )
             self.forecast_list.addItem(item)
 
-        # Combined totals
         self.combined_label.setText(
             f"Total Income: ${combined.total_income:,.2f} | "
             f"Total Expenses: ${combined.total_expenses:,.2f} | "
@@ -143,9 +113,6 @@ class BudgetScreen(QWidget):
             f"Safe to Spend: ${combined.safe_to_spend:,.2f}"
         )
 
-    # ---------------------------------------------------------
-    # Deposit / Withdraw
-    # ---------------------------------------------------------
     def deposit(self):
         self._apply_savings_change("deposit")
 
