@@ -178,8 +178,6 @@ class PayScheduleScreen(QWidget):
     # Save everything
     # -------------------------
     def save_all(self):
-        print(">>> SAVE_ALL FIRED")
-
         # Save spending
         spend = parse_money(self.spend_input.text())
 

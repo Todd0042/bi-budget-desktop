@@ -2,11 +2,14 @@ import datetime
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from dateutil.relativedelta import relativedelta
+
 from .database import (
     get_income_sources,
     get_expenses,
+    get_total_monthly_expenses,
     load_pay_schedule,
-    get_expense_payment,   # ← ADD THIS
+    get_expense_payment,
 )
 
 
@@ -25,6 +28,7 @@ class IncomeWindowForecast:
     hold_back: float
     start_date: datetime.date
     per_check_expense_allocation: float
+    planned_savings: float
 
 
 @dataclass
@@ -69,11 +73,6 @@ def _load_schedule_values() -> Tuple[float, float]:
     return float(spend), float(planned_savings)
 
 
-def get_total_monthly_expenses() -> float:
-    rows = get_expenses()
-    return sum(amount for _id, name, amount, due_day, frequency in rows if frequency == "monthly")
-
-
 def _last_day_of_month(year: int, month: int) -> datetime.date:
     if month < 12:
         return datetime.date(year, month + 1, 1) - datetime.timedelta(days=1)
@@ -81,102 +80,90 @@ def _last_day_of_month(year: int, month: int) -> datetime.date:
 
 
 # ============================================================
-# EXPENSE EXPANSION
+# UNIFIED EXPENSE EXPANSION  (handles all frequency types)
 # ============================================================
 
-def _expand_monthly_expenses(start_date: datetime.date, months_ahead: int = 3):
+def _expand_all_expenses(
+    start_date: datetime.date,
+    end_date: datetime.date,
+    skip_paid: bool = True,
+) -> List[Tuple]:
+    """
+    Returns (id, name, amount, due_date, frequency, category) for every
+    expense occurrence that falls within [start_date, end_date].
+    """
     rows = get_expenses()
     expanded = []
 
-    for _id, name, amount, due_day, frequency in rows:
-        if frequency != "monthly":
-            continue
+    for _id, name, amount, due_day, due_month, due_date_full, frequency, category in rows:
 
-        year = start_date.year
-        month = start_date.month
+        if frequency == "monthly":
+            year  = start_date.year
+            month = start_date.month
+            while True:
+                y = year + (month - 1) // 12
+                m = ((month - 1) % 12) + 1
+                last = _last_day_of_month(y, m).day
+                d    = min(due_day, last)
+                due  = datetime.date(y, m, d)
+                if due > end_date:
+                    break
+                if due >= start_date:
+                    paid = get_expense_payment(_id, due.isoformat()) if skip_paid else 0
+                    if not paid:
+                        expanded.append((_id, name, amount, due, frequency, category))
+                month += 1
 
-        for i in range(months_ahead):
-            m = month + i
-            y = year + (m - 1) // 12
-            m = ((m - 1) % 12) + 1
+        elif frequency == "annual" and due_date_full:
+            anchor = datetime.date.fromisoformat(due_date_full)
+            # walk backward from anchor to before start_date, then forward
+            d = anchor
+            while d > start_date:
+                d = d - relativedelta(years=1)
+            while d <= end_date:
+                if d >= start_date:
+                    paid = get_expense_payment(_id, d.isoformat()) if skip_paid else 0
+                    if not paid:
+                        expanded.append((_id, name, amount, d, frequency, category))
+                d = d + relativedelta(years=1)
 
-            if m < 12:
-                last_day = (datetime.date(y, m + 1, 1) - datetime.timedelta(days=1)).day
-            else:
-                last_day = (datetime.date(y + 1, 1, 1) - datetime.timedelta(days=1)).day
+        elif frequency == "quarterly" and due_date_full:
+            anchor = datetime.date.fromisoformat(due_date_full)
+            d = anchor
+            while d > start_date:
+                d = d - relativedelta(months=3)
+            while d <= end_date:
+                if d >= start_date:
+                    paid = get_expense_payment(_id, d.isoformat()) if skip_paid else 0
+                    if not paid:
+                        expanded.append((_id, name, amount, d, frequency, category))
+                d = d + relativedelta(months=3)
 
-            d = min(due_day, last_day)
-            due_date = datetime.date(y, m, d)
-
-            if due_date >= start_date:
-                # NEW: skip if this specific instance is marked paid
-                paid = get_expense_payment(_id, due_date.isoformat())
-                if paid == 1:
-                    continue
-
-                expanded.append((_id, name, amount, due_date, frequency))
-
+        elif frequency == "one-time" and due_date_full:
+            due = datetime.date.fromisoformat(due_date_full)
+            if start_date <= due <= end_date:
+                paid = get_expense_payment(_id, due.isoformat()) if skip_paid else 0
+                if not paid:
+                    expanded.append((_id, name, amount, due, frequency, category))
 
     return expanded
 
 
-def _expand_monthly_expenses_until(start_date: datetime.date, cutoff_date: datetime.date):
-    rows = get_expenses()
-    expanded = []
-
-    for _id, name, amount, due_day, frequency in rows:
-        if frequency != "monthly":
-            continue
-
-        year = start_date.year
-        month = start_date.month
-
-        while True:
-            y = year + (month - 1) // 12
-            m = ((month - 1) % 12) + 1
-
-            if m < 12:
-                last_day = (datetime.date(y, m + 1, 1) - datetime.timedelta(days=1)).day
-            else:
-                last_day = (datetime.date(y + 1, 1, 1) - datetime.timedelta(days=1)).day
-
-            d = min(due_day, last_day)
-            due_date = datetime.date(y, m, d)
-
-            if due_date > cutoff_date:
-                break
-
-            if due_date >= start_date:
-                # NEW: skip if this specific instance is marked paid
-                paid = get_expense_payment(_id, due_date.isoformat())
-                if paid == 1:
-                    month += 1
-                    continue
-
-                expanded.append((_id, name, amount, due_date, frequency))
-
-
-            month += 1
-
-    return expanded
-
-
-def _get_expenses_in_window(start_date: datetime.date, end_date: datetime.date):
-    expenses = _expand_monthly_expenses(start_date)
-    results = []
-
-    for _id, name, amount, due_date, frequency in expenses:
-        if start_date <= due_date <= end_date:
-            results.append((_id, name, amount, due_date, frequency))
-
-    return results
+def _get_expenses_in_window(
+    start_date: datetime.date,
+    end_date: datetime.date,
+) -> List[Tuple]:
+    return _expand_all_expenses(start_date, end_date, skip_paid=True)
 
 
 # ============================================================
 # 3-CHECK MONTH DETECTION
 # ============================================================
 
-def _generate_biweekly_schedule(start_date: datetime.date, end_date: datetime.date) -> List[datetime.date]:
+def _generate_biweekly_schedule(
+    start_date: datetime.date,
+    end_date: datetime.date,
+) -> List[datetime.date]:
     dates = []
     d = start_date
     while d <= end_date:
@@ -185,7 +172,15 @@ def _generate_biweekly_schedule(start_date: datetime.date, end_date: datetime.da
     return dates
 
 
-def find_next_three_check_month(today: Optional[datetime.date] = None, lookahead_months: int = 12):
+def find_next_three_check_month(
+    today: Optional[datetime.date] = None,
+    lookahead_months: int = 12,
+) -> Optional[ThreeCheckMonthInfo]:
+    """
+    Returns the earliest month where any single income source individually
+    receives 3 paychecks. Checks each source independently so that two
+    incomes on the same schedule don't double-count.
+    """
     if today is None:
         today = datetime.date.today()
 
@@ -194,38 +189,44 @@ def find_next_three_check_month(today: Optional[datetime.date] = None, lookahead
         return None
 
     end_date = today + datetime.timedelta(days=lookahead_months * 31)
+    best: Optional[ThreeCheckMonthInfo] = None
 
-    all_dates: List[datetime.date] = []
     for _id, amount, frequency, start_str, planned_savings in incomes:
-        start = _parse_date(start_str)
-        first = _biweekly_next_pay(start, today)
-        all_dates.extend(_generate_biweekly_schedule(first, end_date))
+        start  = _parse_date(start_str)
+        first  = _biweekly_next_pay(start, today)
+        dates  = _generate_biweekly_schedule(first, end_date)
 
-    by_month = {}
-    for d in all_dates:
-        key = (d.year, d.month)
-        by_month.setdefault(key, []).append(d)
+        by_month: dict = {}
+        for d in dates:
+            by_month.setdefault((d.year, d.month), []).append(d)
 
-    for (year, month), dates in sorted(by_month.items()):
-        if len(dates) >= 3:
-            return ThreeCheckMonthInfo(year=year, month=month, pay_dates=sorted(dates))
+        for (year, month), month_dates in sorted(by_month.items()):
+            if len(month_dates) >= 3:
+                info = ThreeCheckMonthInfo(
+                    year=year, month=month, pay_dates=sorted(month_dates)
+                )
+                if best is None or (info.year, info.month) < (best.year, best.month):
+                    best = info
+                break  # earliest for this income found; check next income source
 
-    return None
+    return best
 
 
-def find_next_three_check_month_for_income(start_date: datetime.date, today: Optional[datetime.date] = None, lookahead_months: int = 12):
+def find_next_three_check_month_for_income(
+    start_date: datetime.date,
+    today: Optional[datetime.date] = None,
+    lookahead_months: int = 12,
+) -> Optional[ThreeCheckMonthInfo]:
     if today is None:
         today = datetime.date.today()
 
-    first = _biweekly_next_pay(start_date, today)
+    first    = _biweekly_next_pay(start_date, today)
     end_date = today + datetime.timedelta(days=lookahead_months * 31)
-
-    dates = _generate_biweekly_schedule(first, end_date)
+    dates    = _generate_biweekly_schedule(first, end_date)
 
     by_month = {}
     for d in dates:
-        key = (d.year, d.month)
-        by_month.setdefault(key, []).append(d)
+        by_month.setdefault((d.year, d.month), []).append(d)
 
     for (year, month), ds in sorted(by_month.items()):
         if len(ds) >= 3:
@@ -234,13 +235,15 @@ def find_next_three_check_month_for_income(start_date: datetime.date, today: Opt
     return None
 
 
-def _get_earliest_three_check_month(today: datetime.date) -> Optional[ThreeCheckMonthInfo]:
+def _get_earliest_three_check_month(
+    today: datetime.date,
+) -> Optional[ThreeCheckMonthInfo]:
     incomes = get_income_sources()
     best: Optional[ThreeCheckMonthInfo] = None
 
     for _id, amount, frequency, start_str, planned_savings in incomes:
         start = _parse_date(start_str)
-        info = find_next_three_check_month_for_income(start, today)
+        info  = find_next_three_check_month_for_income(start, today)
         if not info:
             continue
         if best is None or (info.year, info.month) < (best.year, best.month):
@@ -265,113 +268,97 @@ def _build_full_timeline_required_hold_back(
     if earliest_three:
         cutoff_date = _last_day_of_month(earliest_three.year, earliest_three.month)
     else:
-        approx = today + datetime.timedelta(days=6 * 31)
+        approx      = today + datetime.timedelta(days=6 * 31)
         cutoff_date = _last_day_of_month(approx.year, approx.month)
 
     pay_map = {}
-
     for _id, amount, frequency, start_str, planned_savings in incomes:
-        start = _parse_date(start_str)
+        start     = _parse_date(start_str)
         first_pay = _biweekly_next_pay(start, today)
         if first_pay > cutoff_date:
             continue
         d = first_pay
         while d <= cutoff_date:
             income_total, savings_total = pay_map.get(d, (0.0, 0.0))
-            income_total += float(amount)
-            savings_total += float(planned_savings)
-            pay_map[d] = (income_total, savings_total)
+            pay_map[d] = (income_total + float(amount), savings_total + float(planned_savings))
             d += datetime.timedelta(days=14)
 
     if not pay_map:
         return 0.0
 
-    pay_dates = sorted(pay_map.keys())
-    expanded_expenses = _expand_monthly_expenses_until(today, cutoff_date)
+    pay_dates        = sorted(pay_map.keys())
+    expanded_expenses = _expand_all_expenses(today, cutoff_date, skip_paid=True)
 
-    balance = 0.0
+    balance     = 0.0
     min_balance = 0.0
     prev_boundary = today
 
     for pay_date in pay_dates:
-        window_start = prev_boundary
-        window_end = pay_date
-
+        window_start            = prev_boundary
+        window_end              = pay_date
         income_amount, savings_amount = pay_map[pay_date]
 
-        total_expenses = 0.0
-        for _id, name, exp_amount, due_date, frequency in expanded_expenses:
-            if window_start <= due_date <= window_end:
-                total_expenses += exp_amount
+        total_expenses = sum(
+            exp_amount
+            for _id, name, exp_amount, due_date, freq, cat in expanded_expenses
+            if window_start <= due_date <= window_end
+        )
 
-        net = income_amount - total_expenses - avg_spending - savings_amount
-
-        balance += net
+        balance += income_amount - total_expenses - avg_spending - savings_amount
         if balance < min_balance:
             min_balance = balance
-
         prev_boundary = pay_date
 
     return abs(min_balance)
 
 
 # ============================================================
-# INCOME WINDOW FORECASTING (FIXED)
+# INCOME WINDOW FORECASTING
 # ============================================================
 
-def calculate_income_windows(today: Optional[datetime.date] = None) -> List[IncomeWindowForecast]:
+def calculate_income_windows(
+    today: Optional[datetime.date] = None,
+) -> List[IncomeWindowForecast]:
     if today is None:
         today = datetime.date.today()
 
-    incomes = get_income_sources()
+    incomes        = get_income_sources()
+    monthly_total  = get_total_monthly_expenses()
+    num_sources    = len(incomes)
+    divisor        = num_sources * 2
+    per_check_alloc = monthly_total / divisor if divisor > 0 else 0.0
+
     income_next = []
-
-    monthly_total = get_total_monthly_expenses()
-    num_sources = len(incomes)
-    divisor = num_sources * 2
-    per_check_allocation = monthly_total / divisor if divisor > 0 else 0.0
-
     for income_id, amount, frequency, start_str, planned_savings in incomes:
-        start = _parse_date(start_str)
+        start    = _parse_date(start_str)
         next_pay = _biweekly_next_pay(start, today)
-        income_next.append((income_id, amount, next_pay, start))
+        income_next.append((income_id, float(amount), next_pay, start, float(planned_savings)))
 
     income_next.sort(key=lambda x: x[2])
 
     forecasts: List[IncomeWindowForecast] = []
-    if not income_next:
-        return forecasts
-
-    # FIXED: one forecast per income, no nested loop
-    for income_id, amount, next_pay, start in income_next:
-        previous_pay = next_pay - datetime.timedelta(days=14)
-
-        window_start = previous_pay
-        window_end = next_pay
-
-        expenses = _get_expenses_in_window(window_start, window_end)
+    for income_id, amount, next_pay, start, planned_savings in income_next:
+        previous_pay  = next_pay - datetime.timedelta(days=14)
+        window_start  = previous_pay
+        window_end    = next_pay
+        expenses      = _get_expenses_in_window(window_start, window_end)
         total_expenses = sum(e[2] for e in expenses)
 
-        forecasts.append(
-            IncomeWindowForecast(
-                income_id=income_id,
-                amount=float(amount),
-                next_pay=next_pay,
-                window_start=window_start,
-                window_end=window_end,
-                total_expenses=total_expenses,
-                hold_back=0.0,
-                start_date=start,
-                per_check_expense_allocation=per_check_allocation,
-            )
-        )
+        forecasts.append(IncomeWindowForecast(
+            income_id=income_id,
+            amount=amount,
+            next_pay=next_pay,
+            window_start=window_start,
+            window_end=window_end,
+            total_expenses=total_expenses,
+            hold_back=0.0,
+            start_date=start,
+            per_check_expense_allocation=per_check_alloc,
+            planned_savings=planned_savings,
+        ))
 
-    avg_spending, _legacy_planned_savings = _load_schedule_values()
-
-    required_hold_back = _build_full_timeline_required_hold_back(
-        today,
-        avg_spending,
-    )
+    avg_spending, _ = _load_schedule_values()
+    required_hold_back = _build_full_timeline_required_hold_back(today, avg_spending)
 
     for w in forecasts:
         w.hold_back = required_hold_back
@@ -380,29 +367,29 @@ def calculate_income_windows(today: Optional[datetime.date] = None) -> List[Inco
 
 
 # ============================================================
-# COMBINED FORECAST (OPTION A — CONSISTENT WINDOW)
+# COMBINED FORECAST
 # ============================================================
 
-def calculate_combined_forecast(today: Optional[datetime.date] = None) -> CombinedForecast:
+def calculate_combined_forecast(
+    today: Optional[datetime.date] = None,
+) -> CombinedForecast:
     if today is None:
         today = datetime.date.today()
 
     income_windows = calculate_income_windows(today)
     avg_spending, planned_savings = _load_schedule_values()
 
-    total_income = sum(w.amount for w in income_windows)
-    total_expenses = sum(w.total_expenses for w in income_windows)
+    total_income    = sum(w.amount for w in income_windows)
+    total_expenses  = sum(w.total_expenses for w in income_windows)
     total_hold_back = sum(w.hold_back for w in income_windows)
 
-    # OPTION A: Combined window = earliest start → latest end
     if income_windows:
         start_date = min(w.window_start for w in income_windows)
-        end_date = max(w.window_end for w in income_windows)
+        end_date   = max(w.window_end   for w in income_windows)
     else:
-        start_date = today
-        end_date = today
+        start_date = end_date = today
 
-    required = total_expenses + avg_spending + planned_savings
+    required   = total_expenses + avg_spending + planned_savings
     safe_to_spend = max(0.0, total_income - required)
 
     return CombinedForecast(
@@ -415,3 +402,61 @@ def calculate_combined_forecast(today: Optional[datetime.date] = None) -> Combin
         total_hold_back=total_hold_back,
         safe_to_spend=safe_to_spend,
     )
+
+
+# ============================================================
+# RUNNING BALANCE PROJECTION
+# ============================================================
+
+@dataclass
+class BalanceEvent:
+    date: datetime.date
+    description: str
+    amount: float          # positive = credit, negative = debit
+    balance: float         # running balance after this event
+    event_type: str        # "income" | "expense"
+
+
+def calculate_running_balance(
+    starting_balance: float,
+    today: Optional[datetime.date] = None,
+    weeks_ahead: int = 8,
+) -> List[BalanceEvent]:
+    """
+    Projects the checking-account balance over the next `weeks_ahead` weeks.
+    starting_balance should be the current checking account balance.
+    """
+    if today is None:
+        today = datetime.date.today()
+
+    end_date = today + datetime.timedelta(weeks=weeks_ahead)
+    events: List[Tuple] = []   # (date, description, amount, event_type)
+
+    # Income events
+    for _id, amount, frequency, start_str, planned_savings in get_income_sources():
+        start    = _parse_date(start_str)
+        next_pay = _biweekly_next_pay(start, today)
+        d = next_pay
+        while d <= end_date:
+            events.append((d, f"Paycheck #{_id}", float(amount), "income"))
+            d += datetime.timedelta(days=14)
+
+    # Expense events (all frequencies, unpaid only)
+    for _id, name, amount, due_date, frequency, category in _expand_all_expenses(today, end_date, skip_paid=True):
+        events.append((due_date, f"{name} ({category})", -float(amount), "expense"))
+
+    events.sort(key=lambda e: (e[0], 0 if e[3] == "income" else 1))
+
+    balance = starting_balance
+    result: List[BalanceEvent] = []
+    for d, desc, amt, etype in events:
+        balance += amt
+        result.append(BalanceEvent(
+            date=d,
+            description=desc,
+            amount=amt,
+            balance=balance,
+            event_type=etype,
+        ))
+
+    return result
