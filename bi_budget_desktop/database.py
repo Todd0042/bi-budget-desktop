@@ -41,6 +41,10 @@ def _migrate_db(conn):
     _add_column_if_missing(cur, "expenses", "category",      "TEXT NOT NULL DEFAULT 'General'")
     _add_column_if_missing(cur, "expenses", "due_month",     "INTEGER NOT NULL DEFAULT 1")
     _add_column_if_missing(cur, "expenses", "due_date_full", "TEXT NOT NULL DEFAULT ''")
+    # One-time: the global pay_schedule.planned_savings is deprecated — savings is now per
+    # income source. Zero any legacy value so the forecast doesn't double-count it against
+    # the per-source savings. Idempotent: a no-op once it's already 0.
+    cur.execute("UPDATE pay_schedule SET planned_savings = 0 WHERE planned_savings != 0")
     conn.commit()
 
 

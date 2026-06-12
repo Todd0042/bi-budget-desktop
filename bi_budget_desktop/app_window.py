@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon
 
 from .screens.expenses_screen    import ExpensesScreen
-from .screens.pay_schedule_screen import PayScheduleScreen
+from .screens.income_screen      import IncomeScreen
 from .screens.budget_screen      import BudgetScreen
 from .screens.settings_screen    import SettingsScreen
 from .screens.philosophy_screen  import PhilosophyScreen
@@ -136,6 +136,29 @@ class AppWindow(QMainWindow):
         if fn:
             fn()
 
+    def reload_current(self):
+        """Re-render whatever screen is showing (used after a sync pull)."""
+        self.switch_screen(self.sidebar.currentRow())
+
+    def closeEvent(self, event):
+        """Best-effort push of local changes on exit, bounded so a down server can't
+        stall the close (the next launch will push anything that didn't make it)."""
+        try:
+            import os
+            import threading
+            from .database import DB_PATH, init_db
+            from . import sync as syncmod
+            cfg = os.path.join(os.path.dirname(DB_PATH), "sync_config.json")
+            if syncmod.configured(cfg):
+                t = threading.Thread(
+                    target=lambda: syncmod.sync(DB_PATH, cfg, on_pulled=init_db, timeout=4),
+                    daemon=True)
+                t.start()
+                t.join(timeout=3)
+        except Exception:
+            pass
+        super().closeEvent(event)
+
     # ------------------------------------------------------------------
     # DASHBOARD
     # ------------------------------------------------------------------
@@ -177,7 +200,7 @@ class AppWindow(QMainWindow):
             grid.setSpacing(12)
 
             for idx, w in enumerate(income_windows):
-                free  = max(0.0, w.amount - w.total_expenses - w.hold_back - w.planned_savings)
+                free  = max(0.0, w.amount - w.total_expenses - combined.average_spending - w.planned_savings)
                 three = find_next_three_check_month_for_income(w.start_date)
                 three_html = ""
                 if three:
@@ -194,10 +217,11 @@ class AppWindow(QMainWindow):
                     f"<table style='margin-top:4px;'>"
                     f"<tr><td>Paycheck amount</td><td align='right'><b>${w.amount:,.2f}</b></td></tr>"
                     f"<tr><td>Bills this window</td><td align='right' style='color:#f44336'>−${w.total_expenses:,.2f}</td></tr>"
-                    f"<tr><td>Hold-back reserve</td><td align='right' style='color:#f44336'>−${w.hold_back:,.2f}</td></tr>"
+                    f"<tr><td>Avg spending</td><td align='right' style='color:#f44336'>−${combined.average_spending:,.2f}</td></tr>"
                     f"<tr><td>Planned savings</td><td align='right' style='color:#f44336'>−${w.planned_savings:,.2f}</td></tr>"
                     f"<tr><td><b>Free to spend</b></td><td align='right'><b style='color:#4caf50'>${free:,.2f}</b></td></tr>"
                     f"</table>"
+                    f"<span style='color:#888888'>Suggested hold-back reserve: ${w.hold_back:,.2f}</span>"
                     f"{three_html}"
                 )
                 block.setStyleSheet(
@@ -295,7 +319,7 @@ class AppWindow(QMainWindow):
 
     def show_income(self):
         self.clear_content()
-        self.content_layout.addWidget(PayScheduleScreen())
+        self.content_layout.addWidget(IncomeScreen())
 
     def show_savings(self):
         self.clear_content()

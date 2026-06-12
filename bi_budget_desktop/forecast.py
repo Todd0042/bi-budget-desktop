@@ -289,25 +289,31 @@ def _build_full_timeline_required_hold_back(
     pay_dates        = sorted(pay_map.keys())
     expanded_expenses = _expand_all_expenses(today, cutoff_date, skip_paid=True)
 
-    balance     = 0.0
-    min_balance = 0.0
+    balance      = 0.0
+    min_balance  = 0.0
     prev_boundary = today
+    first_window = True
 
     for pay_date in pay_dates:
-        window_start            = prev_boundary
-        window_end              = pay_date
+        window_end                    = pay_date
         income_amount, savings_amount = pay_map[pay_date]
 
+        # Half-open windows so a bill due exactly on a payday is counted once: the first
+        # window includes `today`; every later window EXCLUDES its start date (the previous
+        # payday, already counted by the window that ended on it). Inclusive-both-ends here
+        # double-counted any expense landing on a payday.
         total_expenses = sum(
             exp_amount
             for _id, name, exp_amount, due_date, freq, cat in expanded_expenses
-            if window_start <= due_date <= window_end
+            if (prev_boundary <= due_date if first_window else prev_boundary < due_date)
+            and due_date <= window_end
         )
 
         balance += income_amount - total_expenses - avg_spending - savings_amount
         if balance < min_balance:
             min_balance = balance
         prev_boundary = pay_date
+        first_window  = False
 
     return abs(min_balance)
 
@@ -379,15 +385,24 @@ def calculate_combined_forecast(
     income_windows = calculate_income_windows(today)
     avg_spending, planned_savings = _load_schedule_values()
 
-    total_income    = sum(w.amount for w in income_windows)
-    total_expenses  = sum(w.total_expenses for w in income_windows)
-    total_hold_back = sum(w.hold_back for w in income_windows)
+    total_income = sum(w.amount for w in income_windows)
 
     if income_windows:
         start_date = min(w.window_start for w in income_windows)
         end_date   = max(w.window_end   for w in income_windows)
+        # Count each expense occurrence ONCE across the whole window span. Summing the
+        # per-income-source windows double-counted every bill when there were 2+ sources
+        # (each source's window independently scans all expenses).
+        total_expenses = sum(
+            e[2] for e in _expand_all_expenses(start_date, end_date, skip_paid=True))
+        # hold_back is a single household figure — the rolling engine already aggregates
+        # every income source into one simulated balance — so take it once instead of
+        # summing the identical per-window copies (which multiplied it by source count).
+        total_hold_back = max(w.hold_back for w in income_windows)
     else:
         start_date = end_date = today
+        total_expenses = 0.0
+        total_hold_back = 0.0
 
     required   = total_expenses + avg_spending + planned_savings
     safe_to_spend = max(0.0, total_income - required)

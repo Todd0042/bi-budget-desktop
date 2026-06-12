@@ -13,14 +13,48 @@ from ..database import (
 )
 
 
-def _paychecks_until(deadline_str: str) -> int:
+def _paydays_until(deadline_str: str) -> int:
+    """Total paychecks (across all income sources) between today and the deadline, using each
+    source's real bi-weekly schedule — not a naive (deadline-today)//14 anchored on today."""
     try:
         deadline = datetime.date.fromisoformat(deadline_str)
-        today    = datetime.date.today()
-        days     = (deadline - today).days
-        return max(0, days // 14)
     except Exception:
         return 0
+    today = datetime.date.today()
+    count = 0
+    for _id, amount, frequency, start_str, planned_savings in get_income_sources():
+        try:
+            d = datetime.date.fromisoformat(start_str)
+        except Exception:
+            continue
+        while d < today:
+            d += datetime.timedelta(days=14)
+        while d <= deadline:
+            count += 1
+            d += datetime.timedelta(days=14)
+    return count
+
+
+def _projected_savings_until(deadline_str: str) -> float:
+    """How much will actually be saved by the deadline: each income source's planned
+    savings/check summed over its real paydays between today and the deadline."""
+    try:
+        deadline = datetime.date.fromisoformat(deadline_str)
+    except Exception:
+        return 0.0
+    today = datetime.date.today()
+    total = 0.0
+    for _id, amount, frequency, start_str, planned_savings in get_income_sources():
+        try:
+            d = datetime.date.fromisoformat(start_str)
+        except Exception:
+            continue
+        while d < today:
+            d += datetime.timedelta(days=14)
+        while d <= deadline:
+            total += float(planned_savings)
+            d += datetime.timedelta(days=14)
+    return total
 
 
 def _total_planned_savings_per_check() -> float:
@@ -157,7 +191,8 @@ class GoalsScreen(QWidget):
 
         # Stats
         remaining    = max(0.0, target - saved)
-        checks_left  = _paychecks_until(deadline)
+        checks_left  = _paydays_until(deadline)
+        projected    = _projected_savings_until(deadline)
         per_check_needed = (remaining / checks_left) if checks_left > 0 else remaining
 
         try:
@@ -166,8 +201,12 @@ class GoalsScreen(QWidget):
         except Exception:
             dl_str = deadline
 
-        on_track = per_check <= 0 or per_check_needed <= 0 or per_check >= per_check_needed
-        track_text = "On track" if on_track else f"Need ${per_check_needed:,.2f}/check (have ${per_check:,.2f} allocated)"
+        # On track if the goal is already met, or the savings you'll actually accrue by the
+        # deadline (each source's savings/check over its real paydays) covers what remains.
+        # (Previously `per_check <= 0` made a goal with $0 allocated read "On track".)
+        on_track = remaining <= 0 or projected >= remaining
+        track_text = ("On track" if on_track
+                      else f"Need ${per_check_needed:,.2f}/check — on pace for ${projected:,.2f} of ${remaining:,.2f}")
         track_color = "#4caf50" if on_track else "#f44336"
 
         stats = QLabel(
