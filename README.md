@@ -9,7 +9,7 @@
 # 💰 Bi-Budget Desktop
 
 [![Version](https://img.shields.io/badge/Version-1.0a-4caf50.svg)]()
-[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-00f0ff.svg)](LICENSE)
 [![Platform: Linux & Windows](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-orange.svg)](build.sh)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-3776ab.svg)](requirements.txt)
 [![UI: PySide6 (Qt 6)](https://img.shields.io/badge/UI-PySide6%20(Qt%206)-41cd52.svg)](requirements.txt)
@@ -275,7 +275,7 @@ bi-budget-desktop/
 ├── run.py                                  # Top-level launcher calling bi_budget_desktop.main.main()
 ├── requirements.txt                        # Runtime dependencies (PySide6>=6.4.0, python-dateutil>=2.8.0)
 ├── build.sh                                # Multi-platform PyInstaller build script (Linux + Wine Windows)
-├── LICENSE                                 # GNU General Public License v3.0 (GPLv3)
+├── LICENSE                                 # PolyForm Noncommercial License 1.0.0 (Copyright (c) 2026 Todd0042)
 ├── bi_budget_desktop/
 │   ├── __init__.py
 │   ├── main.py                             # QApplication bootstrap, QSS/Fusion theme loader & _StartupSync
@@ -320,7 +320,7 @@ python3 -c "import bi_budget_desktop.database, bi_budget_desktop.forecast, bi_bu
 
 ## 9. License & Support
 
-* **License**: **Bi-Budget Desktop** is free, copyleft open-source software licensed under the **[GNU General Public License v3.0 (GPLv3)](LICENSE)**.
+* **License**: [PolyForm Noncommercial License 1.0.0](LICENSE) — free for personal, hobby, educational, research and nonprofit use; commercial use (inside a company, in a paid product or service, or for profit) requires a separate license from [Todd0042](https://github.com/Todd0042).
 * **Disclaimer**: Bi-Budget is a personal budgeting tool and does not provide financial advice.
 
 <p align="center">
